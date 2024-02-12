@@ -29,7 +29,7 @@ public class WebSecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.csrf().disable()
                 .authorizeHttpRequests()
-                .requestMatchers("/authenticate", "/sign-up/**").permitAll()
+                .requestMatchers("/authenticate", "/user/**").permitAll()
                 .requestMatchers("/v3/api-docs/**",
             			"/configuration/ui", "/swagger-resources/**",
             			"/configuration/security", "/webjars/**",

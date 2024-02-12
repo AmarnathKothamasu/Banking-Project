@@ -3,6 +3,8 @@ package com.banking.ank.controllers;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -15,48 +17,80 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import com.banking.ank.JwtService.UserDetailsServiceImpl;
 import com.banking.ank.dto.AuthenticationDTO;
 import com.banking.ank.dto.AuthenticationResponse;
+import com.banking.ank.entities.User;
+import com.banking.ank.services.UserService;
+import com.banking.ank.services.UserServiceImpl;
 import com.banking.ank.util.JwtUtil;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
 public class UserController {
-	
+
+	private static final Logger log = LogManager.getLogger(UserController.class);
+
 	@GetMapping("/api/hello")
 	@ResponseBody
 	public String hello() {
 		return "Hello, World!";
 	}
-	
-    @Autowired
-    private JwtUtil jwtUtil;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+	@Autowired
+	private JwtUtil jwtUtil;
 
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
+	@Autowired
+	private AuthenticationManager authenticationManager;
 
-    @PostMapping("/authenticate")
-    public AuthenticationResponse createAuthenticationToken(@RequestBody AuthenticationDTO authenticationDTO, HttpServletResponse response) throws BadCredentialsException, DisabledException, UsernameNotFoundException, IOException {
-        try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationDTO.getEmail(), authenticationDTO.getPassword()));
-        } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("Incorrect username or password!");
-        } catch (DisabledException disabledException) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "User is not activated");
-            return null;
-        }
+	@Autowired
+	private UserDetailsServiceImpl userDetailsService;
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDTO.getEmail());
+	@Autowired
+	private UserService userService;
 
-        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+	@PostMapping("/authenticate")
+	public AuthenticationResponse createAuthenticationToken(@RequestBody AuthenticationDTO authenticationDTO,
+			HttpServletResponse response)
+			throws BadCredentialsException, DisabledException, UsernameNotFoundException, IOException {
+		try {
 
-        return new AuthenticationResponse(jwt);
+			log.debug("Entering Authentication Function");
+			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authenticationDTO.getEmail(),
+					authenticationDTO.getPassword()));
+		} catch (BadCredentialsException e) {
+			log.error("Wrong credentials");
+			throw new BadCredentialsException("Incorrect username or password!");
+		} catch (DisabledException disabledException) {
+			log.error("User is not activated");
+			response.sendError(HttpServletResponse.SC_NOT_FOUND, "User is not activated");
+			return null;
+		}
 
-    }
-	
+		final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDTO.getEmail());
+
+		final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+
+		return new AuthenticationResponse(jwt);
+
+	}
+
+	@PostMapping("/user/createuser")
+	public ResponseEntity<?> createUser(@RequestBody User user) {
+		User newUser = user;
+		try {
+			log.debug("Entering the createuser service");
+			newUser = userService.saveUser(user);
+		} catch (Exception e) {
+			log.error("error produced during creating user : {}", e.getMessage());
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(newUser, HttpStatus.OK);
+		
+	}
+
 }
