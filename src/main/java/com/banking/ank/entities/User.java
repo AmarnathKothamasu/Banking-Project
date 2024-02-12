@@ -12,7 +12,6 @@ import lombok.Data;
 
 @Entity
 @Table(name = "user")
-@Data
 public class User {
 
 	@Id
@@ -76,14 +75,6 @@ public class User {
 
 	public User(Long userId) {
 		super();
-		this.userId = userId;
-	}
-
-	public Long getuserId() {
-		return userId;
-	}
-
-	public void setuserId(Long userId) {
 		this.userId = userId;
 	}
 
