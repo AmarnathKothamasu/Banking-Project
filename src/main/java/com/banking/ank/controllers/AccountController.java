@@ -33,6 +33,7 @@ public class AccountController {
 	@PostMapping("/createaccount")
 	public ResponseEntity<String> getAccountDetails(HttpServletRequest request, HttpServletResponse response) {
 		
+		
 		String token = request.getHeader("Authorization").substring(7);
 		String username = jwtUtil.extractUsername(token);
 		
@@ -48,5 +49,21 @@ public class AccountController {
 		}
 		return ResponseEntity.status(HttpStatus.OK)
 				.body("Account created successfully with account number " + accountDetailsresponse.getAccountno());
+	}
+	
+	@GetMapping("/getBalance")
+	public ResponseEntity<AccountDetails> getBalance (HttpServletRequest request, HttpServletResponse response){
+		String token = request.getHeader("Authorization").substring(7);
+		String username = jwtUtil.extractUsername(token);
+		AccountDetails accountDetails =  new AccountDetails();
+		try {
+			log.debug("Entering the getBalance Api endpoint");
+			accountDetails = accountDetailsService.getBalanceDetails(username);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(accountDetails);
+		}
+		return ResponseEntity.status(HttpStatus.OK)
+				.body(accountDetails);
 	}
 }

@@ -78,4 +78,10 @@ public class AccountDetailsServiceImpl implements AccountDetailsService {
 		accountdetailsRepository.save(accDetails);
 
 	}
+
+	@Override
+	public AccountDetails getBalanceDetails(String username) {
+		AccountDetails accDetails = accountdetailsRepository.findByEmail(username);
+		return accDetails;
+	}
 }

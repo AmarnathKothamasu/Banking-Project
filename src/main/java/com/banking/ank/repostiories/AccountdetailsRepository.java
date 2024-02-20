@@ -23,4 +23,7 @@ public interface AccountdetailsRepository extends JpaRepository<AccountDetails,L
 	
 	@Query("SELECT ac FROM AccountDetails ac WHERE ac.accountno = :accountno")
 	AccountDetails findByAccountno(@Param("accountno") String accountno);
+	
+	@Query("SELECT ac FROM AccountDetails ac WHERE ac.email = :email")
+	AccountDetails findByEmail(@Param("email") String email);
 }

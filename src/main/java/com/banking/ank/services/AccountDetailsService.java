@@ -11,4 +11,6 @@ public interface AccountDetailsService {
 	int getBalance(String accountFrom);
 
 	void updateBalance(String accountFrom, long l);
+
+	AccountDetails getBalanceDetails(String username);
 }
