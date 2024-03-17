@@ -1,6 +1,7 @@
 package com.banking.ank.controllers;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,6 +29,7 @@ import com.banking.ank.services.UserService;
 import com.banking.ank.services.UserServiceImpl;
 import com.banking.ank.util.JwtUtil;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @RestController
@@ -90,7 +92,19 @@ public class UserController {
 			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(newUser, HttpStatus.OK);
-		
+
+	}
+
+	@GetMapping("/api/getUserObject")
+	public ResponseEntity<?> geUserObject(HttpServletRequest request) {
+		Optional<User> user = Optional.of(new User());
+		try {
+			user = userService.getUserById(request);
+		} catch (Exception e) {
+			log.error("error produced during retriving user : {}", e.getMessage());
+			return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(user, HttpStatus.OK);
 	}
 
 }

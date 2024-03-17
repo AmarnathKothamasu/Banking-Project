@@ -10,6 +10,9 @@ import org.springframework.stereotype.Service;
 
 import com.banking.ank.entities.User;
 import com.banking.ank.repostiories.UserRepository;
+import com.banking.ank.util.JwtUtil;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -17,6 +20,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private UserRepository userRepository;
 
+	@Autowired
+	private JwtUtil jwtUtil;
+	
 	@Override
 	public List<User> getAllUsers() {
 		List<User> users = userRepository.findAll();
@@ -51,5 +57,14 @@ public class UserServiceImpl implements UserService {
 		user.setAge(new java.util.Date().getYear() - user.getDob().getYear());
 		User savedUser = userRepository.save(user);
 		return savedUser;
+	}
+
+	@Override
+	public Optional<User> getUserById(HttpServletRequest request) {
+		// TODO Auto-generated method stub
+		String token = request.getHeader("Authorization").substring(7);
+		String username = jwtUtil.extractUsername(token);
+		Optional<User> user = userRepository.findByEmail(username);
+		return user;
 	}
 }

@@ -94,7 +94,7 @@ public class TransactionServiceImpl implements TransactionService {
 			String token = request.getHeader("Authorization").substring(7);
 			String username = jwtUtil.extractUsername(token);
 			String account = accountDetailsService.getAccountFromToken(username);
-			return transactionDetailsRepository.findBytransferFrom(account);
+			return transactionDetailsRepository.findByTransferFromOrTransferTo(account);
 		} catch (Exception e) {
 			throw new RuntimeException(e.getMessage());
 		}
