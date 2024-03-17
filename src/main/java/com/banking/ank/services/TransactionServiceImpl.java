@@ -1,6 +1,7 @@
 package com.banking.ank.services;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.banking.ank.dto.TransferMoneyDto;
 import com.banking.ank.entities.TransactionDetails;
+import com.banking.ank.repostiories.AccountdetailsRepository;
 import com.banking.ank.repostiories.TransactionDetailsRepository;
 import com.banking.ank.util.BadRequestException;
 import com.banking.ank.util.JwtUtil;
@@ -27,6 +29,9 @@ public class TransactionServiceImpl implements TransactionService {
 	private JwtUtil jwtUtil;
 
 	@Autowired
+	private AccountdetailsRepository accountdetailsRepository;
+	
+	@Autowired
 	private AccountDetailsService accountDetailsService;
 
 	@Autowired
@@ -40,14 +45,14 @@ public class TransactionServiceImpl implements TransactionService {
 		String accountFrom = accountDetailsService.getAccountFromToken(username);
 		String accountTo = transferMoneyDto.getTransferTo();
 
-		if (accountTo == null) {
+		if (accountTo == null || !accountdetailsRepository.existsByAccountno(accountTo)) {
 			log.info("Account not found with account no : {}", transferMoneyDto.getTransferTo());
 			throw new BadRequestException("Account not found with account no : " + transferMoneyDto.getTransferTo());
 		}
 		if (accountTo.equals(accountFrom)) {
 			throw new BadRequestException("Can not transfer yourself");
 		}
-
+		
 		if (getBalance(accountFrom) < transferMoneyDto.getAmount()) {
 			log.error("Not enough balance in account : {}", accountFrom);
 			throw new BadRequestException("Not enough balance");
@@ -81,6 +86,18 @@ public class TransactionServiceImpl implements TransactionService {
 
 	private int getBalance(String accountFrom) {
 		return accountDetailsService.getBalance(accountFrom);
+	}
+
+	@Override
+	public List<TransactionDetails> getTransactionDetails(HttpServletRequest request) {
+		try {
+			String token = request.getHeader("Authorization").substring(7);
+			String username = jwtUtil.extractUsername(token);
+			String account = accountDetailsService.getAccountFromToken(username);
+			return transactionDetailsRepository.findByTransferFromOrTransferTo(account);
+		} catch (Exception e) {
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 
 }
